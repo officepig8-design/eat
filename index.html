@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>飼料訂購單 / Phiếu Đặt Thức Ăn Chăn Nuôi</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans TC", sans-serif;
+    }
+
+    body {
+      background-color: #f3f4f6;
+      color: #1f2937;
+      padding: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 520px;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+      overflow: hidden;
+      padding: 16px;
+    }
+
+    .header-title {
+      text-align: center;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #e5e7eb;
+      margin-bottom: 16px;
+    }
+
+    .header-title h1 {
+      font-size: 1.25rem;
+      color: #111827;
+      font-weight: 700;
+    }
+
+    .header-title p {
+      font-size: 0.85rem;
+      color: #6b7280;
+      margin-top: 2px;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 4px;
+    }
+
+    .form-group label span {
+      font-size: 0.8rem;
+      color: #4b5563;
+      font-weight: 500;
+      margin-left: 4px;
+    }
+
+    .form-control, .form-select {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 0.95rem;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      background-color: #fff;
+      color: #111827;
+      outline: none;
+      transition: border-color 0.15s ease-in-out;
+    }
+
+    .form-control:focus, .form-select:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background-color: #2563eb;
+      color: #ffffff;
+    }
+
+    .btn-success {
+      background-color: #059669;
+      color: #ffffff;
+    }
+
+    .btn-secondary {
+      background-color: #4b5563;
+      color: #ffffff;
+    }
+
+    /* 預覽與卡片區域 */
+    #preview-section {
+      display: none;
+      margin-top: 24px;
+      border-top: 2px dashed #d1d5db;
+      padding-top: 20px;
+    }
+
+    .preview-header {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #374151;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    /* 經典四欄表格卡片樣式 (全寬 38% 寬鬆版 + 高質感字體) */
+    .card-container {
+      background: #ffffff;
+      padding: 12px 4px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: center;
+    }
+
+    .order-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 2px solid #000000;
+      background-color: #ffffff;
+      table-layout: fixed;
+    }
+
+    .order-table td {
+      border: 1.5px solid #000000;
+      padding: 10px 6px;
+      text-align: center;
+      /* 換成高質感現代黑體，字體好看清晰 */
+      font-family: system-ui, -apple-system, "Microsoft JhengHei", "Segoe UI", Roboto, sans-serif;
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: #111827;
+      vertical-align: middle;
+      white-space: nowrap; /* 不自動換行 */
+      overflow: hidden;
+    }
+
+    /* 每格內容區寬度皆為 38%，標題區維持適當比例 */
+    .order-table td.col-1 {
+      background-color: #e5e7eb;
+      width: 16%;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #374151;
+    }
+
+    .order-table td.col-2 {
+      background-color: #ffffff;
+      width: 34%;
+    }
+
+    .order-table td.col-3 {
+      background-color: #e5e7eb;
+      width: 16%;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #374151;
+    }
+
+    .order-table td.col-4 {
+      background-color: #ffffff;
+      width: 34%;
+    }
+
+    .order-table td.remark-cell {
+      white-space: pre-wrap; /* 備註允許換行 */
+      word-break: break-all;
+      text-align: center;
+      line-height: 1.35;
+      font-size: 0.88rem;
+    }
+
+    .actions-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-container">
+  <div class="header-title">
+    <h1>飼料訂購單</h1>
+    <p>Phiếu Đặt Thức Ăn Chăn Nuôi</p>
+  </div>
+
+  <form id="orderForm">
+    <!-- 場別 -->
+    <div class="form-group">
+      <label>場別 <span>(Chọn xưởng)</span></label>
+      <select class="form-select" id="farm" required>
+        <option value="">-- 請選擇場別 (Chọn xưởng) --</option>
+        <option value="裕良">裕良 (I Li-ang)</option>
+        <option value="文政">文政 (Uân Chơng)</option>
+        <option value="萬福">萬福 (Uạn Phú)</option>
+        <option value="秋霞">秋霞 (Chiu Siá)</option>
+        <option value="青山">青山 (Chinh San)</option>
+        <option value="秉豐">秉豐 (Bing Phâng)</option>
+        <option value="易畜">易畜 (I Sú)</option>
+        <option value="聖賢">聖賢 (Sâng Siên)</option>
+        <option value="鄉福">鄉福 (Siang Phú)</option>
+        <option value="寶田">寶田 (Báo Tiên)</option>
+        <option value="家洪">家洪 (Gia Hống)</option>
+        <option value="上春">上春 (Sạng Suân)</option>
+        <option value="後庄">後庄 (Hậu Choang)</option>
+        <option value="下蚶">下蚶 (Siạ Hán)</option>
+        <option value="瑞吉">瑞吉 (Ruây Chi)</option>
+      </select>
+    </div>
+
+    <!-- 飼料廠 -->
+    <div class="form-group">
+      <label>飼料廠 <span>(Nhà máy cám)</span></label>
+      <select class="form-select" id="feedMill" required>
+        <option value="">-- 請選擇飼料廠 (Chọn nhà máy) --</option>
+        <option value="國興">國興 (Kuo xing)</option>
+        <option value="新農科">新農科 (Sin nong khơ)</option>
+        <option value="久毅">久毅 (Chiêu i)</option>
+        <option value="旭順">旭順 (Xì xuân)</option>
+      </select>
+    </div>
+
+    <!-- 日期設定 -->
+    <div class="grid-2">
+      <div class="form-group">
+        <label>訂料日期 <span>(Ngày đặt)</span></label>
+        <input type="date" class="form-control" id="orderDate" required>
+      </div>
+      <div class="form-group">
+        <label>到料日期 <span>(Ngày cần)</span></label>
+        <input type="date" class="form-control" id="deliveryDate" required>
+      </div>
+    </div>
+
+    <!-- 到料時段 -->
+    <div class="form-group">
+      <label>到料時段 <span>(Thời gian giao)</span></label>
+      <select class="form-select" id="deliveryTime">
+        <option value="早上到">早上到 (Giao buổi sáng)</option>
+        <option value="下午到">下午到 (Giao buổi chiều)</option>
+      </select>
+    </div>
+
+    <!-- 批次 & 日齡 -->
+    <div class="grid-2">
+      <div class="form-group">
+        <label>批次 <span>(Số lô)</span></label>
+        <input type="text" class="form-control" id="batch" placeholder="例: 1001" required>
+      </div>
+      <div class="form-group">
+        <label>日齡 <span>(Tuổi heo/ngày)</span></label>
+        <input type="number" class="form-control" id="age" placeholder="例: 40" required>
+      </div>
+    </div>
+
+    <!-- 料別 & 規格 -->
+    <div class="grid-2">
+      <div class="form-group">
+        <label>料別 <span>(Loại cám)</span></label>
+        <select class="form-select" id="feedType" required>
+          <option value="">-- 請選擇料別 --</option>
+          <option value="哺乳料">哺乳料 (Pú rủ lẹo)</option>
+          <option value="哺仔料">哺仔料 (Pú giảo lẹo)</option>
+          <option value="高仔料">高仔料 (Khao giảo lẹo)</option>
+          <option value="肉豬料">肉豬料 (Râu chu lẹo)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>規格 <span>(Quy cách)</span></label>
+        <select class="form-select" id="spec" required>
+          <option value="">-- 請選擇規格 --</option>
+          <option value="3.5粒/散">3.5粒/散 (3.5mm Viên / Rời)</option>
+          <option value="2.5粒/散">2.5粒/散 (2.5mm Viên / Rời)</option>
+          <option value="3.5粒/包">3.5粒/包 (3.5mm Viên / Bao)</option>
+          <option value="2.5粒/包">2.5粒/包 (2.5mm Viên / Bao)</option>
+          <option value="粉/散">粉/散 (Dạng Bột / Rời)</option>
+          <option value="粉/包">粉/包 (Dạng Bột / Bao)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 數量 & 備註 -->
+    <div class="form-group">
+      <label>數量 <span>(Số lượng)</span></label>
+      <input type="text" class="form-control" id="quantity" placeholder="例: 2T / 50包" required>
+    </div>
+
+    <div class="form-group">
+      <label>備註 <span>(Ghi chú)</span></label>
+      <textarea class="form-control" id="remark" rows="2" placeholder="例: A桶下1T / B桶下1T"></textarea>
+    </div>
+
+    <div class="btn-group">
+      <button type="button" class="btn btn-primary" onclick="generateCard()">
+        生成訂購單卡片 (Tạo phiếu đặt)
+      </button>
+    </div>
+  </form>
+
+  <!-- 預覽卡片區域 -->
+  <div id="preview-section">
+    <div class="preview-header">👇 請將下方表格【截圖】發至群組 👇</div>
+    
+    <div class="card-container">
+      <div id="capture-area" style="background:#fff; padding:8px; border-radius:6px; display:inline-block; width:100%;">
+        <table class="order-table">
+          <tr>
+            <td class="col-1">場別</td>
+            <td class="col-2" id="res-farm">--</td>
+            <td class="col-3">飼料廠</td>
+            <td class="col-4" id="res-feedMill">--</td>
+          </tr>
+          <tr>
+            <td class="col-1">訂料日期</td>
+            <td class="col-2" id="res-orderDate">--</td>
+            <td class="col-3">到料日期</td>
+            <td class="col-4" id="res-deliveryDate">--</td>
+          </tr>
+          <tr>
+            <td class="col-1">批次</td>
+            <td class="col-2" id="res-batch">--</td>
+            <td class="col-3">日齡</td>
+            <td class="col-4" id="res-age">--</td>
+          </tr>
+          <tr>
+            <td class="col-1">料別</td>
+            <td class="col-2" id="res-feedType">--</td>
+            <td class="col-3">規格</td>
+            <td class="col-4" id="res-spec">--</td>
+          </tr>
+          <tr>
+            <td class="col-1">數量</td>
+            <td class="col-2" id="res-quantity">--</td>
+            <td class="col-3">備註</td>
+            <td class="col-4 remark-cell" id="res-remark">--</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="actions-grid">
+      <button class="btn btn-success" onclick="downloadImage()">
+        📥 下載圖片
+      </button>
+      <button class="btn btn-secondary" onclick="copyText()">
+        📋 複製文字
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 自動預設今日與明日日期
+  window.onload = function() {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    document.getElementById('orderDate').value = formatDateInput(today);
+    document.getElementById('deliveryDate').value = formatDateInput(tomorrow);
+  };
+
+  function formatDateInput(d) {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  // 日期格式化: MM/DD(週)
+  function formatDisplayDate(dateStr, showTime = false, timeStr = '') {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const m = date.getMonth() + 1;
+    const d = date.getDate();
+    const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
+    const w = weekDays[date.getDay()];
+    
+    let result = `${m}/${d}(${w})`;
+    if (showTime && timeStr) {
+      result += `${timeStr}`;
+    }
+    return result;
+  }
+
+  function generateCard() {
+    const farm = document.getElementById('farm').value;
+    const feedMill = document.getElementById('feedMill').value;
+    const orderDate = document.getElementById('orderDate').value;
+    const deliveryDate = document.getElementById('deliveryDate').value;
+    const deliveryTime = document.getElementById('deliveryTime').value;
+    const batch = document.getElementById('batch').value;
+    const age = document.getElementById('age').value;
+    const feedType = document.getElementById('feedType').value;
+    const spec = document.getElementById('spec').value;
+    const quantity = document.getElementById('quantity').value;
+    const remark = document.getElementById('remark').value;
+
+    if (!farm || !feedMill || !orderDate || !deliveryDate || !batch || !age || !feedType || !spec || !quantity) {
+      alert('請填寫所有必填欄位！\nVui lòng điền đầy đủ thông tin!');
+      return;
+    }
+
+    // 填入表格
+    document.getElementById('res-farm').innerText = farm;
+    document.getElementById('res-feedMill').innerText = feedMill;
+    document.getElementById('res-orderDate').innerText = formatDisplayDate(orderDate);
+    document.getElementById('res-deliveryDate').innerText = formatDisplayDate(deliveryDate, true, deliveryTime);
+    document.getElementById('res-batch').innerText = batch;
+    document.getElementById('res-age').innerText = age;
+    document.getElementById('res-feedType').innerText = feedType;
+    document.getElementById('res-spec').innerText = spec;
+    document.getElementById('res-quantity').innerText = quantity;
+    document.getElementById('res-remark').innerText = remark || '';
+
+    // 顯示預覽區域
+    const previewSection = document.getElementById('preview-section');
+    previewSection.style.display = 'block';
+    
+    // 平滑捲動到預覽區
+    previewSection.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function downloadImage() {
+    const captureArea = document.getElementById('capture-area');
+    html2canvas(captureArea, { scale: 2 }).then(canvas => {
+      const link = document.createElement('a');
+      link.download = `訂料單_${document.getElementById('res-farm').innerText}_${document.getElementById('res-orderDate').innerText}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    });
+  }
+
+  function copyText() {
+    const text = `【飼料訂購單】
+場別：${document.getElementById('res-farm').innerText}
+飼料廠：${document.getElementById('res-feedMill').innerText}
+訂料日期：${document.getElementById('res-orderDate').innerText}
+到料日期：${document.getElementById('res-deliveryDate').innerText}
+批次：${document.getElementById('res-batch').innerText}
+日齡：${document.getElementById('res-age').innerText}
+料別：${document.getElementById('res-feedType').innerText}
+規格：${document.getElementById('res-spec').innerText}
+數量：${document.getElementById('res-quantity').innerText}
+備註：${document.getElementById('res-remark').innerText}`;
+
+    navigator.clipboard.writeText(text).then(() => {
+      alert('已複製文字訂單！\nĐã sao chép tin nhắn!');
+    });
+  }
+</script>
+
+</body>
+</html>
